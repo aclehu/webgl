@@ -3,9 +3,10 @@ var VSHADER_SOURCE=
 //y'=xsinb-ycosb
 //z'=z
 'attribute vec4 a_Position;\n'+
-'uniform mat4 u_xformMatrix;\n'+
+'attribute float a_PointSize;\n'+
 'void main(){\n'+
-' gl_Position = u_xformMatrix * a_Position;\n'+
+' gl_Position = a_Position;\n'+
+' gl_PointSize = a_PointSize;\n'+
 '}\n'
 
 var FSHADER_SOURCE=
@@ -39,18 +40,7 @@ if(n<0){
 }
 gl.clearColor(0.0,0.0,0.0,1.0)
 gl.clear(gl.COLOR_BUFFER_BIT)
-var tx=0.5,ty=0.5,tz=1.0;
-var x_formMat= new Matrix4();
-var u_xformMatrix=gl.getUniformLocation(gl.program, 'u_xformMatrix')
-var va=0.0
-var cur=0.0
-var tick=function(){
-  cur=animate(cur)
-  draw(gl,n,cur,x_formMat,u_xformMatrix)
-  requestAnimationFrame(tick)
-}
-tick()
-
+gl.drawArrays(gl.POINTS,0,n)
 }
 
 function initVertexBuffers(gl){
@@ -60,6 +50,8 @@ function initVertexBuffers(gl){
   if(!vertexBuffer){
     return -1;
   }
+  var sizes= new Float32Array([10.0,20.0,30.0])
+  var sizeBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
   var a_Position = gl.getAttribLocation(gl.program,'a_Position');
@@ -70,10 +62,17 @@ function initVertexBuffers(gl){
   gl.vertexAttribPointer(a_Position,2,gl.FLOAT,false,0,0);
   gl.enableVertexAttribArray(a_Position);
  
+  gl.bindBuffer(gl.ARRAY_BUFFER, sizeBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, sizes, gl.STATIC_DRAW);
+
+  var a_PointSize = gl.getAttribLocation(gl.program,'a_PointSize');
+  gl.vertexAttribPointer(a_PointSize,1,gl.FLOAT,false,0,0);
+  gl.enableVertexAttribArray(a_PointSize);
   return n
 }
 function draw(gl, n, cur, mat, u_xformMatrix){
   mat.setRotate(cur,0,0,1)
+  mat.translate(0.35,0,0)
   gl.uniformMatrix4fv(u_xformMatrix,false, mat.elements)
   gl.clear(gl.COLOR_BUFFER_BIT)
   gl.drawArrays(gl.TRIANGLES,0,n)

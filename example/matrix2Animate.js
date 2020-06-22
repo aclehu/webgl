@@ -74,6 +74,7 @@ function initVertexBuffers(gl){
 }
 function draw(gl, n, cur, mat, u_xformMatrix){
   mat.setRotate(cur,0,0,1)
+  mat.translate(0.35,0,0)
   gl.uniformMatrix4fv(u_xformMatrix,false, mat.elements)
   gl.clear(gl.COLOR_BUFFER_BIT)
   gl.drawArrays(gl.TRIANGLES,0,n)
