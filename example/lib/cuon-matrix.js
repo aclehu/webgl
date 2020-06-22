@@ -347,8 +347,8 @@ Matrix4.prototype.frustum = function(left, right, bottom, top, near, far) {
 
 /**
  * Set the perspective projection matrix by fovy and aspect.
- * @param fovy The angle between the upper and lower sides of the frustum.
  * @param aspect The aspect ratio of the frustum. (width/height)
+ * @param fovy The angle between the upper and lower sides of the frustum.
  * @param near The distances to the nearer depth clipping plane. This value must be plus value.
  * @param far The distances to the farther depth clipping plane. This value must be plus value.
  * @return this
