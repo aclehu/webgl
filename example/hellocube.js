@@ -4,10 +4,11 @@ var VSHADER_SOURCE=
 //z'=z
 'attribute vec4 a_Position;\n'+
 'attribute vec4  a_Color;\n'+
-'uniform mat4  u_ProjMatrix;\n'+
+'uniform mat4  u_MvpMatrix;\n'+
+
 'varying vec4 v_Color;\n'+
 'void main(){\n'+
-' gl_Position = u_ProjMatrix*a_Position;\n'+
+' gl_Position = u_MvpMatrix*a_Position;\n'+
 ' v_Color = a_Color;\n'+
 '}\n'
 
@@ -43,16 +44,20 @@ var n = initVertexBuffers(gl)
 if(n<0){
   return
 }
+var u_MvpMatrix = gl.getUniformLocation(gl.program, 'u_MvpMatrix')
 
-var u_ProjMatrix = gl.getUniformLocation(gl.program, 'u_ProjMatrix')
 
-var viewMatrix = new Matrix4()
+var mvpMatrix = new Matrix4()
 
-document.onkeydown=function (ev) {
-   keydown(ev,gl,n,u_ProjMatrix,viewMatrix,nf)
-  
-}
-draw(gl,n,u_ProjMatrix,viewMatrix,nf)
+mvpMatrix.setPerspective(30,1,1,100)
+mvpMatrix.lookAt(3,3,7,0,0,0,0,1,0)
+gl.uniformMatrix4fv(u_MvpMatrix,false,mvpMatrix.elements)
+
+gl.clearColor(0,0,0,1)
+gl.enable(gl.DEPTH_TEST)
+
+gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT)
+gl.drawElements(gl.TRIANGLES,n,gl.UNSIGNED_BYTE,0)
 
 }
 var g_near =0.0, g_far =0.5
@@ -86,22 +91,28 @@ function draw(gl,n,u_ProjMatrix,viewMatrix,nf){
 function initVertexBuffers(gl){
   //顶点坐标和颜色
   var vertices = new Float32Array([
-    0.0,  0.5, -0.4, 0.4,1.0, 0.4,
-    -0.5, -0.5,-0.4, 0.4,1.0, 0.4,
-    0.5, -0.5,  -0.4, 0.4,1.0, 0.4,
-
-    0.5,0.4,-0.2, 1.0,0.4, 0.4,
-    -0.5,0.4,-0.2, 1.0, 1.0, 0.4,
-    0.0,-0.6,-0.2, 1.0, 1.0, 0.4,
-
-    0.0,0.5,0.0, 0.4,0.4, 1.0,
-    -0.5,-0.5,0.0,  0.4,0.4, 1.0,
-    0.5,-0.5,-0.0, 1.0,0.4, 0.4,
+    1.0,  1.0, 1.0, 1.0, 1.0,1.0,
+    -1.0,1.0,1.0, 1.0, 1.0,1.0,
+     -1.0, -1.0,  1.0,1.0, 0.0, 0.0,
+     1.0,  -1.0,  1.0, 1.0,0.0, 0.0,
+     1.0,-1.0,-1.0, 1.0, 1.0,1.0,
+     1.0, 1.0,  -1.0,1.0, 0.0, 0.0,
+     -1.0,  1.0,  -1.0, 1.0,0.0, 0.0,
+     -1.0, -1.0,  -1.0,1.0, 1.0, 0.0,
 
 ]);
-var n = 9;//点的个数
+var indices =new Uint8Array([
+  0,1,2,0,2,3,
+  0,3,4,0,4,5,
+  0,5,6,0,6,1,
+  1,6,7,1,7,2,
+  7,4,3,7,3,2,
+  4,7,6,4,6,5
+])
+var n = 8;//点的个数
 //创建缓冲区对象
 var vertexBuffer = gl.createBuffer();
+var indexBuffer =gl.createBuffer()
 
 //将缓冲区对象绑定到目标
 gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);
@@ -123,5 +134,8 @@ var a_Color = gl.getAttribLocation(gl.program, "a_Color");
 gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, FSIZE*6, FSIZE*3);
 //连接a_Position变量与分配给它的缓冲区对象
 gl.enableVertexAttribArray(a_Color);
-return n;
+
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indexBuffer)
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW)
+return indices.length;
 }

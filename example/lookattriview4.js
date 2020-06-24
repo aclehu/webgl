@@ -4,10 +4,11 @@ var VSHADER_SOURCE=
 //z'=z
 'attribute vec4 a_Position;\n'+
 'attribute vec4  a_Color;\n'+
-'uniform mat4  u_ProjMatrix;\n'+
+'uniform mat4  u_MvpMatrix;\n'+
+
 'varying vec4 v_Color;\n'+
 'void main(){\n'+
-' gl_Position = u_ProjMatrix*a_Position;\n'+
+' gl_Position = u_MvpMatrix*a_Position;\n'+
 ' v_Color = a_Color;\n'+
 '}\n'
 
@@ -43,17 +44,30 @@ var n = initVertexBuffers(gl)
 if(n<0){
   return
 }
+var u_MvpMatrix = gl.getUniformLocation(gl.program, 'u_MvpMatrix')
 
-var u_ProjMatrix = gl.getUniformLocation(gl.program, 'u_ProjMatrix')
 
 var viewMatrix = new Matrix4()
+var projMatrix = new Matrix4()
+var modelMatrix = new Matrix4()
+var mvpMatrix = new Matrix4()
 
-document.onkeydown=function (ev) {
-   keydown(ev,gl,n,u_ProjMatrix,viewMatrix,nf)
-  
-}
-draw(gl,n,u_ProjMatrix,viewMatrix,nf)
+viewMatrix.setLookAt(0,0,5,0,0,-100,0,1,0)
+projMatrix.setPerspective(30,canvas.width/canvas.clientHeight,1,100)
+modelMatrix.setTranslate(0.75,0,0)
+mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix)
+gl.uniformMatrix4fv(u_MvpMatrix,false,mvpMatrix.elements)
 
+gl.clearColor(0,0,0,1)
+gl.clear(gl.COLOR_BUFFER_BIT)
+gl.drawArrays(gl.TRIANGLES,0,n)
+
+modelMatrix.setTranslate(-0.75,0,0)
+mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix)
+gl.uniformMatrix4fv(u_MvpMatrix,false,mvpMatrix.elements)
+
+
+gl.drawArrays(gl.TRIANGLES,0,n)
 }
 var g_near =0.0, g_far =0.5
 function keydown(ev,gl,n,u_ProjMatrix,viewMatrix,nf ){
@@ -86,18 +100,20 @@ function draw(gl,n,u_ProjMatrix,viewMatrix,nf){
 function initVertexBuffers(gl){
   //顶点坐标和颜色
   var vertices = new Float32Array([
-    0.0,  0.5, -0.4, 0.4,1.0, 0.4,
-    -0.5, -0.5,-0.4, 0.4,1.0, 0.4,
-    0.5, -0.5,  -0.4, 0.4,1.0, 0.4,
+    0.0,  1.0, -0.0, 0.4, 0.4,1.0,
+    -0.5, -1.0,-0.0, 0.4, 0.4,1.0,
+     0.5, -1.0,  -0.0,1.0, 0.4, 0.4,
+     0.0,  1.0, -2.0, 1.0,1.0, 0.4,
+     -0.5, -1.0,-2.0,  1.0,1.0, 0.4,
+      0.5, -1.0,  -2.0,1.0, 0.4, 0.4,
+    0.0,  1.0, -4.0, 0.4,1.0, 0.4,
+   -0.5, -1.0,-4.0, 0.4,1.0, 0.4,
+    0.5, -1.0,  -4.0,1.0, 0.4, 0.4,
 
-    0.5,0.4,-0.2, 1.0,0.4, 0.4,
-    -0.5,0.4,-0.2, 1.0, 1.0, 0.4,
-    0.0,-0.6,-0.2, 1.0, 1.0, 0.4,
 
-    0.0,0.5,0.0, 0.4,0.4, 1.0,
-    -0.5,-0.5,0.0,  0.4,0.4, 1.0,
-    0.5,-0.5,-0.0, 1.0,0.4, 0.4,
-
+ 
+  
+  
 ]);
 var n = 9;//点的个数
 //创建缓冲区对象

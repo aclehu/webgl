@@ -5,9 +5,11 @@ var VSHADER_SOURCE=
 'attribute vec4 a_Position;\n'+
 'attribute vec4  a_Color;\n'+
 'uniform mat4  u_ProjMatrix;\n'+
+'uniform mat4  u_ViewMatrix;\n'+
+
 'varying vec4 v_Color;\n'+
 'void main(){\n'+
-' gl_Position = u_ProjMatrix*a_Position;\n'+
+' gl_Position = u_ProjMatrix*u_ViewMatrix*a_Position;\n'+
 ' v_Color = a_Color;\n'+
 '}\n'
 
@@ -45,15 +47,18 @@ if(n<0){
 }
 
 var u_ProjMatrix = gl.getUniformLocation(gl.program, 'u_ProjMatrix')
+var u_ViewMatrix = gl.getUniformLocation(gl.program, 'u_ViewMatrix')
 
 var viewMatrix = new Matrix4()
+var projMatrix = new Matrix4()
+viewMatrix.setLookAt(0,0,5,0,0,-100,0,1,0)
+projMatrix.setPerspective(30,canvas.width/canvas.clientHeight,1,100)
 
-document.onkeydown=function (ev) {
-   keydown(ev,gl,n,u_ProjMatrix,viewMatrix,nf)
-  
-}
-draw(gl,n,u_ProjMatrix,viewMatrix,nf)
-
+gl.uniformMatrix4fv(u_ViewMatrix,false,viewMatrix.elements)
+gl.uniformMatrix4fv(u_ProjMatrix,false,projMatrix.elements)
+gl.clearColor(0,0,0,1)
+gl.clear(gl.COLOR_BUFFER_BIT)
+gl.drawArrays(gl.TRIANGLES,0,n)
 }
 var g_near =0.0, g_far =0.5
 function keydown(ev,gl,n,u_ProjMatrix,viewMatrix,nf ){
@@ -86,20 +91,31 @@ function draw(gl,n,u_ProjMatrix,viewMatrix,nf){
 function initVertexBuffers(gl){
   //顶点坐标和颜色
   var vertices = new Float32Array([
-    0.0,  0.5, -0.4, 0.4,1.0, 0.4,
-    -0.5, -0.5,-0.4, 0.4,1.0, 0.4,
-    0.5, -0.5,  -0.4, 0.4,1.0, 0.4,
+    0.75,  1.0, -4.0, 0.4,1.0, 0.4,
+   0.25, -1.0,-4.0, 0.4,1.0, 0.4,
+    1.25, -1.0,  -4.0, 0.4,1.0, 0.4,
 
-    0.5,0.4,-0.2, 1.0,0.4, 0.4,
-    -0.5,0.4,-0.2, 1.0, 1.0, 0.4,
-    0.0,-0.6,-0.2, 1.0, 1.0, 0.4,
+    0.75,1.0,-2.0, 1.0,0.4, 0.4,
+    0.25,-1.0,-2.0, 1.0, 1.0, 0.4,
+    1.25, -1.0,  -2.0, 1.0, 1.0, 0.4,
 
-    0.0,0.5,0.0, 0.4,0.4, 1.0,
-    -0.5,-0.5,0.0,  0.4,0.4, 1.0,
-    0.5,-0.5,-0.0, 1.0,0.4, 0.4,
+    0.75,1.0,0.0, 1.0,0.4, 0.4,
+    0.25,-1.0,0.0, 1.0, 1.0, 0.4,
+    1.25, -1.0,  0.0, 1.0, 1.0, 0.4,
 
+    -0.75,  1.0, -4.0, 0.4,0.4, 1.0,
+    -1.25, -1.0,  -4.0,  0.4,0.4, 1.0,
+    -0.25, -1.0,-4.0, 1.0,0.4, 0.4,
+
+    -0.75,  1.0, -2.0, 0.4,0.4, 1.0,
+    -1.25, -1.0,  -2.0,  0.4,0.4, 1.0,
+    -0.25, -1.0,-2.0, 1.0,0.4, 0.4,
+
+    -0.75,  1.0, 0.0, 0.4,0.4, 1.0,
+    -1.25, -1.0, 0.0,  0.4,0.4, 1.0,
+    -0.25, -1.0,0.0, 1.0,0.4, 0.4,
 ]);
-var n = 9;//点的个数
+var n = 18;//点的个数
 //创建缓冲区对象
 var vertexBuffer = gl.createBuffer();
 
